@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Send, Bot, User, Sparkles, MessageCircle, Zap } from 'lucide-react'
+import { getOrCreateThreadId } from './utils/threadId'
 
 interface Message {
   id: string
@@ -24,6 +25,37 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // 自动加载历史记录
+  useEffect(() => {
+    const thread_id = getOrCreateThreadId();
+    fetch(`/api/chat?thread_id=${thread_id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data.history) && data.history.length > 0) {
+          // 适配新格式
+          const historyMsgs: Message[] = data.history.map((msg: any, idx: number) => {
+            // 判断角色
+            let role: 'user' | 'assistant' = 'assistant';
+            if (Array.isArray(msg.id) && msg.id.includes('HumanMessage')) {
+              role = 'user';
+            } else if (Array.isArray(msg.id) && (msg.id.includes('AIMessage') || msg.id.includes('AIMessageChunk'))) {
+              role = 'assistant';
+            }
+            return {
+              id: String(idx + 1),
+              content: msg.kwargs?.content || '',
+              role,
+              timestamp: new Date() // 可根据需要调整
+            }
+          })
+          setMessages(prev => [
+            ...historyMsgs.length > 0 ? historyMsgs : prev
+          ])
+        }
+      })
+      .catch(() => { })
+  }, [])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -56,12 +88,13 @@ export default function ChatPage() {
     setIsLoading(true)
 
     try {
+      const thread_id = getOrCreateThreadId();
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ message: input.trim() })
+        body: JSON.stringify({ message: input.trim(), thread_id })
       })
 
       if (!response.ok) {
@@ -148,6 +181,8 @@ export default function ChatPage() {
     setInput(e.target.value)
     adjustTextareaHeight()
   }
+
+  const threadId = typeof window !== 'undefined' ? getOrCreateThreadId() : '';
 
   return (
     <div className="h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
@@ -323,6 +358,11 @@ export default function ChatPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 可选：底部显示会话ID */}
+      <div className="fixed bottom-2 right-2 text-xs text-purple-300 bg-black/40 px-2 py-1 rounded shadow">
+        会话ID: {threadId}
       </div>
     </div>
   )

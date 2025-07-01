@@ -1,11 +1,14 @@
 import '../../utils/loadEnv'
 import { NextRequest, NextResponse } from 'next/server'
 import { HumanMessage } from '@langchain/core/messages'
-import { ChatOpenAI } from '@langchain/openai'
+import { streamingChatbot, checkpointer } from '@/app/agent/chatbot'
+
+// 引入uuid生成器
+import { randomUUID } from 'crypto'
 
 export async function POST(request: NextRequest) {
     try {
-        const { message } = await request.json()
+        const { message, thread_id } = await request.json()
 
         if (!message || typeof message !== 'string') {
             return NextResponse.json(
@@ -16,56 +19,45 @@ export async function POST(request: NextRequest) {
 
         // 创建消息对象
         const userMessage = new HumanMessage(message)
+        // 优先使用前端传入的thread_id，否则自动生成
+        const threadId = typeof thread_id === 'string' && thread_id ? thread_id : randomUUID()
+        const threadConfig = { configurable: { thread_id: threadId } }
 
         // 创建流式响应
         const stream = new ReadableStream({
             async start(controller) {
                 try {
-                    // 直接使用ChatOpenAI的流式功能
-                    const model = new ChatOpenAI({
-                        modelName: process.env.OPENAI_MODEL_NAME || 'gpt-3.5-turbo',
-                        temperature: parseFloat(process.env.OPENAI_TEMPERATURE || '0.7'),
-                        maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS || '1000'),
-                        openAIApiKey: process.env.OPENAI_API_KEY,
-                        streaming: true,
-                    })
-
-                    // 使用流式调用
-                    const streamResult = await model.stream([userMessage])
-
-                    for await (const chunk of streamResult) {
-                        console.log('OpenAI chunk:', chunk)
-
-                        const content = chunk.content
-                        if (typeof content === 'string' && content) {
-                            // 发送流式数据
-                            const data = JSON.stringify({
-                                type: 'chunk',
-                                content: content
-                            }) + '\n'
-
-                            controller.enqueue(new TextEncoder().encode(data))
+                    // 参考 demo，使用 streamEvents 获取流式响应
+                    for await (const event of streamingChatbot.streamEvents(
+                        { messages: [userMessage] },
+                        { version: 'v2', ...threadConfig }
+                    )) {
+                        if (event.event === 'on_chat_model_stream') {
+                            const chunk = event.data?.chunk
+                            if (chunk?.content) {
+                                const data = JSON.stringify({
+                                    type: 'chunk',
+                                    content: chunk.content
+                                }) + '\n'
+                                controller.enqueue(new TextEncoder().encode(data))
+                            }
                         }
                     }
-
                     // 发送结束标记
                     const endData = JSON.stringify({
                         type: 'end',
-                        status: 'success'
+                        status: 'success',
+                        thread_id: threadId
                     }) + '\n'
-
                     controller.enqueue(new TextEncoder().encode(endData))
                     controller.close()
-
                 } catch (error) {
                     console.error('流式聊天错误:', error)
-
                     const errorData = JSON.stringify({
                         type: 'error',
                         error: '服务器内部错误',
                         message: '抱歉，处理你的请求时出现了问题。请稍后重试。'
                     }) + '\n'
-
                     controller.enqueue(new TextEncoder().encode(errorData))
                     controller.close()
                 }
@@ -81,10 +73,8 @@ export async function POST(request: NextRequest) {
                 'Connection': 'keep-alive'
             }
         })
-
     } catch (error) {
         console.error('聊天 API 错误:', error)
-
         return NextResponse.json(
             {
                 error: '服务器内部错误',
@@ -95,12 +85,29 @@ export async function POST(request: NextRequest) {
     }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+    // 判断是否为历史记录请求
+    const { searchParams } = new URL(request.url)
+    const thread_id = searchParams.get('thread_id')
+    if (thread_id) {
+        try {
+            // 通过graph.getState获取历史
+            const state = await streamingChatbot.getState({ configurable: { thread_id } })
+            return NextResponse.json({
+                thread_id,
+                history: state?.values?.messages || []
+            })
+        } catch (e) {
+            return NextResponse.json({ error: '获取历史记录失败', detail: String(e) }, { status: 500 })
+        }
+    }
+    // 默认返回API信息
     return NextResponse.json({
         message: 'LangGraph 聊天 API 正在运行',
         version: '1.0.0',
         endpoints: {
-            chat: 'POST /api/chat (流式响应)'
+            chat: 'POST /api/chat (流式响应)',
+            history: 'GET /api/chat?thread_id=xxx (获取历史记录)'
         }
     })
 } 
