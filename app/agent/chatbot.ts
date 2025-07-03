@@ -10,6 +10,7 @@ import { HumanMessage } from '@langchain/core/messages';
 import { SqliteSaver } from '@langchain/langgraph-checkpoint-sqlite';
 import path from 'path';
 import Database from 'better-sqlite3';
+import { initSessionTable } from './db';
 
 // 初始化 OpenAI 模型
 const model = new ChatOpenAI({
@@ -42,6 +43,8 @@ async function initializeApp() {
     try {
       // 使用 better-sqlite3 创建数据库连接
       const db = new Database(dbPath);
+      // 初始化自定义 sessions 表
+      initSessionTable();
       checkpointer = new SqliteSaver(db);
       console.log('SqliteSaver 初始化成功');
     } catch (error) {

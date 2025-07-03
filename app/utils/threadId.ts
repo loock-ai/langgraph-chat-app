@@ -6,4 +6,9 @@ export function getOrCreateThreadId() {
         localStorage.setItem('thread_id', threadId);
     }
     return threadId;
+}
+
+export function setThreadId(id: string) {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('thread_id', id);
 } 
