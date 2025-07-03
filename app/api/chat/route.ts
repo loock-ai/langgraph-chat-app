@@ -89,18 +89,18 @@ export async function GET(request: NextRequest) {
     // 判断是否为历史记录请求
     const { searchParams } = new URL(request.url)
     const thread_id = searchParams.get('thread_id')
-    if (thread_id) {
-        try {
-            // 通过graph.getState获取历史
-            const state = await streamingChatbot.getState({ configurable: { thread_id } })
-            return NextResponse.json({
-                thread_id,
-                history: state?.values?.messages || []
-            })
-        } catch (e) {
-            return NextResponse.json({ error: '获取历史记录失败', detail: String(e) }, { status: 500 })
-        }
-    }
+    // if (thread_id) {
+    //     try {
+    //         // 通过graph.getState获取历史
+    //         const state = await streamingChatbot.getState({ configurable: { thread_id } })
+    //         return NextResponse.json({
+    //             thread_id,
+    //             history: state?.values?.messages || []
+    //         })
+    //     } catch (e) {
+    //         return NextResponse.json({ error: '获取历史记录失败', detail: String(e) }, { status: 500 })
+    //     }
+    // }
     // 默认返回API信息
     return NextResponse.json({
         message: 'LangGraph 聊天 API 正在运行',
@@ -110,4 +110,4 @@ export async function GET(request: NextRequest) {
             history: 'GET /api/chat?thread_id=xxx (获取历史记录)'
         }
     })
-} 
+}

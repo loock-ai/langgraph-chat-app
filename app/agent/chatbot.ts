@@ -5,9 +5,12 @@ import {
     START,
     END,
 } from '@langchain/langgraph';
-import { MemorySaver } from '@langchain/langgraph';
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage } from '@langchain/core/messages';
+import { SqliteSaver } from "@langchain/langgraph-checkpoint-sqlite";
+import path from 'path';
+
+
 
 // 初始化 OpenAI 模型
 const model = new ChatOpenAI({
@@ -23,7 +26,7 @@ async function chatbotNode(state: typeof MessagesAnnotation.State) {
 }
 
 // 创建检查点保存器
-const checkpointer = new MemorySaver();
+// const checkpointer = new MemorySaver();
 
 // 构建流式聊天机器人图
 const workflow = new StateGraph(MessagesAnnotation)
@@ -31,14 +34,22 @@ const workflow = new StateGraph(MessagesAnnotation)
     .addEdge(START, 'chatbot')
     .addEdge('chatbot', END);
 
-// 编译图
-const app = workflow.compile({ checkpointer });
+
+
+const getApp = () => {
+    const dbPath = path.resolve(process.cwd(), 'chat_history2.db')
+    console.log("dbPath", SqliteSaver)
+    const checkpointer = SqliteSaver.fromConnString(dbPath);
+    return workflow.compile({ checkpointer });
+}
+
+const app = getApp()
 
 // 流式响应示例
 async function runStreamingChatbot() {
     console.log('=== 流式聊天机器人示例 ===');
 
-    const threadConfig = { configurable: { thread_id: 'streaming-demo' } };
+    const threadConfig = { configurable: { thread_id: 'streaming-demo' + Math.random() } };
 
     console.log('\n--- 流式响应演示 ---');
     console.log('用户: 请详细介绍一下 React 的核心概念');
@@ -47,7 +58,7 @@ async function runStreamingChatbot() {
     // 使用 streamEvents 获取流式响应
     for await (const event of app.streamEvents(
         {
-            messages: [new HumanMessage('请详细介绍一下 React 的核心概念')],
+            messages: [new HumanMessage('你是谁？')],
         },
         { version: 'v2', ...threadConfig }
     )) {
@@ -217,5 +228,4 @@ export {
     StreamingHandler,
     runCustomStreamingHandler,
     runBatchStreaming,
-    checkpointer,
 };
