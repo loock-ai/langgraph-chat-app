@@ -8,7 +8,6 @@ import {
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage } from '@langchain/core/messages';
 import { SqliteSaver } from '@langchain/langgraph-checkpoint-sqlite';
-import { MemorySaver } from '@langchain/langgraph';
 import path from 'path';
 import Database from 'better-sqlite3';
 
@@ -57,7 +56,7 @@ async function initializeApp() {
 
   return app;
 }
-
+initializeApp()
 // 获取应用实例的函数
 const getApp = async () => {
   return await initializeApp();
