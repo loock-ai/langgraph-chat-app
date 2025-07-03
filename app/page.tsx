@@ -404,10 +404,7 @@ export default function ChatPage() {
             </div>
           </div>
 
-          {/* 可选：底部显示会话ID */}
-          <div className="fixed bottom-2 right-2 text-xs text-purple-300 bg-black/40 px-2 py-1 rounded shadow">
-            会话ID: {sessionId}
-          </div>
+
         </div>
       </div>
     </div>
