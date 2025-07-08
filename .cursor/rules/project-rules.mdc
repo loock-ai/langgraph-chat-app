@@ -1,5 +1,42 @@
 ---
 description:
 globs:
-alwaysApply: false
+alwaysApply: true
 ---
+
+langgraphjs 的代码编写参考代码 
+- /Users/alsc/myFile/learn-langgraphjs/websites/docs  
+- /Users/alsc/myFile/learn-langgraphjs/websites/examples
+
+请严格遵循langgraphjs 的写法
+
+使用mcp和工具：
+
+```ts
+import { MultiServerMCPClient } from '@langchain/mcp-adapters';
+import { TavilySearch } from '@langchain/tavily';
+
+  const mcptools = new MultiServerMCPClient({
+    mcpServers: {
+      server-sequential-thinking: {
+        command: 'npx',
+        args: ['@modelcontextprotocol/server-sequential-thinking', '-y'],
+        transport: 'stdio',
+      },
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+      ]
+    }
+  });
+
+
+  const agent = createReactAgent({
+    llm,
+    tools: [new TavilySearch({ maxResults: 3 }), ...mcptools],
+    prompt,
+  });
+```
