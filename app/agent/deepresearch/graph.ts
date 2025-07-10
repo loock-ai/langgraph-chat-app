@@ -14,7 +14,7 @@ import {
 import { shouldContinueResearch } from './edges';
 
 // 创建 DeepResearch 状态图
-export function createDeepResearchGraph() {
+export function createDeepResearchGraph(_tools?: unknown[]) {
   const workflow = new StateGraph(ResearchStateAnnotation)
     // 添加节点
     .addNode('analyze_question', analyzeQuestionNode)
@@ -40,7 +40,8 @@ export function createDeepResearchGraph() {
 
 // 创建带检查点的状态图
 export function createDeepResearchGraphWithCheckpoint(
-  checkpointer: BaseCheckpointSaver<number>
+  checkpointer: BaseCheckpointSaver<number>,
+  _tools?: unknown[]
 ) {
   const workflow = new StateGraph(ResearchStateAnnotation)
     // 添加节点

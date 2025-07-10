@@ -1,108 +1,163 @@
-import { tool } from '@langchain/core/tools'
-import { z } from 'zod'
+import { tool } from '@langchain/core/tools';
+import { RunnableConfig } from '@langchain/core/runnables';
+import {
+  getEnabledToolsConfig,
+  getCurrentEnvironmentConfig,
+  ToolConfig,
+  addToolConfig,
+  disableTool,
+  enableTool,
+} from './config/tools.config';
 
-// 计算器工具
-export const calculator = tool(
-    async ({ expression }: { expression: string }) => {
-        try {
-            // 简单的数学表达式计算（生产环境中应使用更安全的方法）
-            const result = Function(`"use strict"; return (${expression})`)()
-            return `计算结果: ${expression} = ${result}`
-        } catch (error) {
-            return `计算错误: 无法计算表达式 "${expression}"`
-        }
-    },
-    {
-        name: 'calculator',
-        description: '计算数学表达式',
-        schema: z.object({
-            expression: z.string().describe('要计算的数学表达式，例如 "2 + 3 * 4"')
-        })
-    }
-)
+// 从配置创建 LangChain 工具
+function createToolFromConfig(config: ToolConfig) {
+  return tool(config.handler, {
+    name: config.name,
+    description: config.description,
+    schema: config.schema,
+  });
+}
 
-// 天气查询工具（模拟）
-export const weatherTool = tool(
-    async ({ city }: { city: string }) => {
-        // 模拟天气数据
-        const weatherData = {
-            '北京': { temp: '15°C', condition: '晴天', humidity: '45%' },
-            '上海': { temp: '18°C', condition: '多云', humidity: '60%' },
-            '广州': { temp: '25°C', condition: '小雨', humidity: '80%' },
-            '深圳': { temp: '26°C', condition: '晴天', humidity: '55%' },
-            '杭州': { temp: '20°C', condition: '多云', humidity: '65%' },
-            '成都': { temp: '18°C', condition: '阴天', humidity: '70%' }
-        }
+// 获取所有启用的工具
+export function getAllTools() {
+  const enabledConfigs = getEnabledToolsConfig();
+  const tools = Object.values(enabledConfigs).map(createToolFromConfig);
+  return tools;
+}
 
-        const weather = weatherData[city as keyof typeof weatherData] || {
-            temp: '20°C',
-            condition: '未知',
-            humidity: '50%'
-        }
+// 获取特定工具
+export function getTool(name: string) {
+  const enabledConfigs = getEnabledToolsConfig();
+  const config = enabledConfigs[name];
+  if (!config) {
+    throw new Error(`Tool "${name}" not found or not enabled`);
+  }
+  return createToolFromConfig(config);
+}
 
-        return `${city}的天气情况：\n🌡️ 温度：${weather.temp}\n☁️ 天气：${weather.condition}\n💧 湿度：${weather.humidity}`
-    },
-    {
-        name: 'weather',
-        description: '查询指定城市的天气信息',
-        schema: z.object({
-            city: z.string().describe('要查询天气的城市名称')
-        })
-    }
-)
+// 获取工具映射（向后兼容）
+export function getToolsMap() {
+  const enabledConfigs = getEnabledToolsConfig();
+  const toolsMap: Record<string, any> = {};
 
-// 时间工具
-export const timeTool = tool(
-    async () => {
-        const now = new Date()
-        return `当前时间: ${now.toLocaleString('zh-CN', {
-            timeZone: 'Asia/Shanghai',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            weekday: 'long'
-        })}`
-    },
-    {
-        name: 'current_time',
-        description: '获取当前时间和日期',
-        schema: z.object({})
-    }
-)
+  for (const [name, config] of Object.entries(enabledConfigs)) {
+    toolsMap[name] = createToolFromConfig(config);
+  }
 
-// 搜索工具（模拟）
-export const searchTool = tool(
-    async ({ query }: { query: string }) => {
-        // 模拟搜索结果
-        const searchResults = [
-            `关于 "${query}" 的搜索结果：`,
-            `1. ${query} 相关的最新信息...`,
-            `2. ${query} 的详细解释和说明...`,
-            `3. ${query} 的相关链接和资源...`,
-            `\n💡 这是一个模拟的搜索功能，在实际应用中可以接入真实的搜索API。`
-        ]
+  return toolsMap;
+}
 
-        return searchResults.join('\n')
-    },
-    {
-        name: 'search',
-        description: '搜索相关信息',
-        schema: z.object({
-            query: z.string().describe('搜索查询词')
-        })
-    }
-)
+// 从运行时配置获取工具
+export function getToolsFromConfig(config?: RunnableConfig) {
+  // 如果配置中有工具，优先使用配置中的工具
+  if (config?.configurable?.tools) {
+    return config.configurable.tools;
+  }
 
-// 导出所有工具
-export const allTools = [calculator, weatherTool, timeTool, searchTool]
+  // 否则使用默认的工具配置
+  return getAllTools();
+}
 
-// 工具映射，便于查找
-export const toolsMap = {
-    calculator,
-    weather: weatherTool,
-    current_time: timeTool,
-    search: searchTool
-} 
+// 检查工具是否启用
+export function isToolEnabled(name: string): boolean {
+  const enabledConfigs = getEnabledToolsConfig();
+  return !!enabledConfigs[name];
+}
+
+// 获取工具列表（仅名称）
+export function getEnabledToolNames(): string[] {
+  const envConfig = getCurrentEnvironmentConfig();
+  return envConfig.enabledTools;
+}
+
+// 获取工具配置信息
+export function getToolInfo(name: string) {
+  const enabledConfigs = getEnabledToolsConfig();
+  const config = enabledConfigs[name];
+  if (!config) {
+    return null;
+  }
+
+  return {
+    name: config.name,
+    description: config.description,
+    enabled: config.enabled,
+    options: config.options,
+  };
+}
+
+// 获取所有工具信息
+export function getAllToolsInfo() {
+  const enabledConfigs = getEnabledToolsConfig();
+  return Object.values(enabledConfigs).map((config) => ({
+    name: config.name,
+    description: config.description,
+    enabled: config.enabled,
+    options: config.options,
+  }));
+}
+
+// 动态工具管理函数（运行时使用）
+export const toolManager = {
+  // 添加新工具
+  addTool: (name: string, config: Omit<ToolConfig, 'name'>) => {
+    addToolConfig(name, config);
+  },
+
+  // 禁用工具
+  disableTool: (name: string) => {
+    disableTool(name);
+  },
+
+  // 启用工具
+  enableTool: (name: string) => {
+    enableTool(name);
+  },
+
+  // 获取工具状态
+  getToolStatus: (name: string) => {
+    return {
+      exists: isToolEnabled(name),
+      info: getToolInfo(name),
+    };
+  },
+
+  // 列出所有工具
+  listTools: () => {
+    return getAllToolsInfo();
+  },
+};
+
+// 向后兼容的导出
+export const allTools = getAllTools();
+export const toolsMap = getToolsMap();
+
+// 具体工具的快捷访问（向后兼容）
+export const calculator = getTool('calculator');
+export const weatherTool = getTool('weather');
+export const timeTool = getTool('current_time');
+export const searchTool = getTool('search');
+
+// 工具初始化函数（类似 deepresearch 的模式）
+export async function initializeAgentTools(config?: RunnableConfig) {
+  const tools = getToolsFromConfig(config);
+  const envConfig = getCurrentEnvironmentConfig();
+
+  return {
+    allTools: tools,
+    toolsMap: getToolsMap(),
+    enabledTools: getEnabledToolNames(),
+    debugMode: envConfig.debugMode,
+    toolManager,
+  };
+}
+
+// 创建工具配置（用于传递给 LangGraph）
+export function createAgentToolsConfig() {
+  const envConfig = getCurrentEnvironmentConfig();
+  return {
+    enabledTools: envConfig.enabledTools,
+    debugMode: envConfig.debugMode,
+    tools: getAllTools(),
+  };
+}

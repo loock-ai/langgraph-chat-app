@@ -7,6 +7,66 @@ import {
   createAnalysisLLM,
   createGenerationLLM,
 } from './nodes/llm';
+import path from 'path';
+
+// 统一的 MCP 工具初始化函数
+export async function initializeMCPToolsForDeepResearch() {
+  const { MultiServerMCPClient } = await import('@langchain/mcp-adapters');
+  const { TavilySearch } = await import('@langchain/tavily');
+
+  const mcptools = new MultiServerMCPClient({
+    mcpServers: {
+      'server-sequential-thinking': {
+        command: 'npx',
+        args: ['@modelcontextprotocol/server-sequential-thinking', '-y'],
+        transport: 'stdio',
+      },
+      filesystem: {
+        command: 'npx',
+        args: [
+          '-y',
+          '@modelcontextprotocol/server-filesystem',
+          path.join(process.cwd(), 'public'),
+        ],
+        transport: 'stdio',
+      },
+      playwright: {
+        command: 'npx',
+        args: ['@playwright/mcp@latest'],
+        transport: 'stdio',
+      },
+    },
+  });
+
+  // 获取 MCP 工具
+  const tools = await mcptools.getTools();
+
+  // 添加搜索工具
+  const searchTool = new TavilySearch({ maxResults: 3 });
+  const allTools = [searchTool, ...tools];
+
+  return {
+    allTools,
+    searchTool,
+    mcpTools: tools,
+  };
+}
+
+// 创建工具配置
+export function createToolsConfig() {
+  return {
+    tavily: {
+      maxResults: 5,
+      searchDepth: 'advanced' as const,
+      includeAnswer: true,
+    },
+    mcp: {
+      enableSequentialThinking: true,
+      enableFilesystem: true,
+      allowedDirectories: [process.cwd()],
+    },
+  };
+}
 
 // 工具配置接口
 export interface ToolsConfig {
@@ -70,7 +130,7 @@ export async function initializeTools(config?: RunnableConfig) {
     Object.assign(mcpServers, mcpConfig.customServers);
   }
 
-  let mcpTools: any[] = [];
+  let mcpTools: unknown[] = [];
   if (Object.keys(mcpServers).length > 0) {
     const mcpClient = new MultiServerMCPClient({ mcpServers });
     mcpTools = await mcpClient.getTools();
@@ -259,95 +319,4 @@ export async function createContentGenerationAgent() {
     tools: [...tools],
     prompt: generationPrompt,
   });
-}
-
-// 创建统一的章节研究 ReactAgent
-export async function createSectionResearchAgent() {
-  const llm = createAnalysisLLM();
-
-  const searchTool = new TavilySearch({
-    maxResults: 8,
-    searchDepth: 'advanced',
-    includeAnswer: true,
-  });
-
-  const mcptools = new MultiServerMCPClient({
-    mcpServers: {
-      'server-sequential-thinking': {
-        command: 'npx',
-        args: ['@modelcontextprotocol/server-sequential-thinking', '-y'],
-        transport: 'stdio',
-      },
-      filesystem: {
-        command: 'npx',
-        args: ['-y', '@modelcontextprotocol/server-filesystem', process.cwd()],
-        transport: 'stdio',
-      },
-    },
-  });
-
-  const tools = await mcptools.getTools();
-
-  const researchPrompt = `你是一个专业的研究专家，能够完成完整的章节研究工作。你的能力包括：
-
-**信息搜索能力**：
-- 制定有效的搜索策略
-- 执行多轮搜索获取全面信息
-- 筛选和评估信息质量
-- 识别权威来源和可靠数据
-
-**深度分析能力**：
-- 使用sequential-thinking工具进行深度思考
-- 提取关键信息和核心观点
-- 发现内在联系和模式
-- 评估信息的可靠性和时效性
-
-**内容创作能力**：
-- 生成结构化的高质量内容
-- 使用适当的Markdown格式
-- 包含具体数据和引用来源
-- 确保逻辑清晰、论证充分
-
-工作流程：
-1. 首先使用搜索工具获取相关信息
-2. 然后使用sequential-thinking工具进行深度分析
-3. 最后基于分析结果生成完整的章节内容
-
-请确保每个步骤都充分完成，生成的内容具有学术性和专业性。`;
-
-  return createReactAgent({
-    llm,
-    tools: [searchTool, ...tools],
-    prompt: researchPrompt,
-  });
-}
-
-// 辅助函数：提取关键点
-export function extractKeyPoints(content: string): string[] {
-  const lines = content.split('\n');
-  return lines
-    .filter(
-      (line) => line.includes('•') || line.includes('-') || line.includes('*')
-    )
-    .map((line) => line.replace(/[•\-*]\s*/, '').trim())
-    .filter((line) => line.length > 10)
-    .slice(0, 10);
-}
-
-// 辅助函数：提取洞察
-export function extractInsights(content: string): string[] {
-  const insightKeywords = ['洞察', '发现', '趋势', '模式', '关键', '重要'];
-  const lines = content.split('\n');
-  return lines
-    .filter((line) => insightKeywords.some((keyword) => line.includes(keyword)))
-    .map((line) => line.trim())
-    .filter((line) => line.length > 20)
-    .slice(0, 5);
-}
-
-// 辅助函数：提取来源
-export function extractSources(content: string): string[] {
-  const urlRegex = /https?:\/\/[^\s]+/g;
-  const urls = content.match(urlRegex) || [];
-  return [...new Set(urls)].slice(0, 10);
 }

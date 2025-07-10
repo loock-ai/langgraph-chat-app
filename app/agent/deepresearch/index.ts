@@ -59,10 +59,16 @@ export async function runDeepResearch(
   const { checkpointer, onProgress, onError } = options || {};
 
   try {
-    // 创建状态图
+    // 初始化 MCP 工具
+    const { initializeMCPToolsForDeepResearch, createToolsConfig } =
+      await import('./tools');
+    const { allTools } = await initializeMCPToolsForDeepResearch();
+    const toolsConfig = createToolsConfig();
+
+    // 创建状态图，传入工具
     const graph = checkpointer
-      ? createDeepResearchGraphWithCheckpoint(checkpointer)
-      : createDeepResearchGraph();
+      ? createDeepResearchGraphWithCheckpoint(checkpointer, allTools)
+      : createDeepResearchGraph(allTools);
 
     // 创建初始状态
     const initialState = createInitialState(question, sessionId, userId);
@@ -72,10 +78,21 @@ export async function runDeepResearch(
       throw new Error('初始状态验证失败');
     }
 
-    // 配置
+    // 配置，将工具传入运行时配置
     const config = checkpointer
-      ? { configurable: { thread_id: sessionId } }
-      : {};
+      ? {
+          configurable: {
+            thread_id: sessionId,
+            tools: allTools,
+            toolsConfig,
+          },
+        }
+      : {
+          configurable: {
+            tools: allTools,
+            toolsConfig,
+          },
+        };
 
     // 执行研究
     const stream = await graph.stream(initialState, config);
@@ -117,15 +134,25 @@ export async function* streamDeepResearch(
   sessionId: string,
   userId: string,
   options?: {
-    checkpointer?: any;
+    checkpointer?: unknown;
   }
 ) {
   const { checkpointer } = options || {};
 
-  // 创建状态图
+  // 初始化 MCP 工具
+  const { initializeMCPToolsForDeepResearch, createToolsConfig } = await import(
+    './tools'
+  );
+  const { allTools } = await initializeMCPToolsForDeepResearch();
+  const toolsConfig = createToolsConfig();
+
+  // 创建状态图，传入工具
   const graph = checkpointer
-    ? createDeepResearchGraphWithCheckpoint(checkpointer)
-    : createDeepResearchGraph();
+    ? createDeepResearchGraphWithCheckpoint(
+        checkpointer as BaseCheckpointSaver<number>,
+        allTools
+      )
+    : createDeepResearchGraph(allTools);
 
   // 创建初始状态
   const initialState = createInitialState(question, sessionId, userId);
@@ -135,8 +162,21 @@ export async function* streamDeepResearch(
     throw new Error('初始状态验证失败');
   }
 
-  // 配置
-  const config = checkpointer ? { configurable: { thread_id: sessionId } } : {};
+  // 配置，将工具传入运行时配置
+  const config = checkpointer
+    ? {
+        configurable: {
+          thread_id: sessionId,
+          tools: allTools,
+          toolsConfig,
+        },
+      }
+    : {
+        configurable: {
+          tools: allTools,
+          toolsConfig,
+        },
+      };
 
   // 流式执行
   const stream = await graph.stream(initialState, config);

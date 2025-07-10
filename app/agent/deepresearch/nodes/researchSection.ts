@@ -40,8 +40,9 @@ export async function researchSectionNode(
   // 创建统一的研究 Agent，集成搜索、分析、内容生成功能
   const llm = createAnalysisLLM();
 
-  // 统一初始化所有工具
-  const { allTools } = await initializeTools(config);
+  // 从运行时配置获取工具，如果没有则使用默认初始化
+  const allTools =
+    config?.configurable?.tools || (await initializeTools(config)).allTools;
 
   const researchPrompt = `你是一个专业的研究专家，能够完成完整的章节研究工作。你的能力包括：
 

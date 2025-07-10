@@ -16,7 +16,33 @@ export {
   weatherTool,
   timeTool,
   searchTool,
+  toolsMap,
+  getAllTools,
+  getTool,
+  getToolsMap,
+  getToolsFromConfig,
+  isToolEnabled,
+  getEnabledToolNames,
+  getToolInfo,
+  getAllToolsInfo,
+  toolManager,
+  initializeAgentTools,
+  createAgentToolsConfig,
 } from './tools';
+
+// 工具配置
+export {
+  type ToolConfig,
+  type EnvironmentConfig,
+  toolsConfig,
+  environmentConfig,
+  getCurrentEnvironmentConfig,
+  getEnabledToolsConfig,
+  validateToolConfig,
+  addToolConfig,
+  disableTool,
+  enableTool,
+} from './config/tools.config';
 
 // DeepResearch Agent
 export {
