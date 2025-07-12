@@ -159,6 +159,11 @@ export default function DeepResearchPage() {
         }
 
         if (data.generatedContent && data.generatedContent.length > 0) {
+          console.log(
+            '%c Line:162 🥐 data.generatedContent',
+            'color:#3f7cff',
+            data.generatedContent
+          );
           data.generatedContent.forEach((content: any) => {
             addMessage({
               type: 'content',
@@ -215,6 +220,7 @@ export default function DeepResearchPage() {
 
   // 添加消息
   const addMessage = (message: any) => {
+    console.log('%c Line:218 🍰 message', 'color:#4fff4B', message);
     setMessages((prev) => [...prev, message]);
   };
 

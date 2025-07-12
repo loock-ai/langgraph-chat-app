@@ -1,4 +1,7 @@
 import '../../utils/loadEnv';
+import { getCheckpointer } from '../chatbot';
+import { initializeMCPToolsForDeepResearch, createToolsConfig } from './tools';
+
 // 导出类型定义
 export * from './types';
 export * from './state';
@@ -56,19 +59,19 @@ export async function runDeepResearch(
     onError?: (error: string) => void;
   }
 ) {
-  const { checkpointer, onProgress, onError } = options || {};
+  const {
+    checkpointer = getCheckpointer(),
+    onProgress,
+    onError,
+  } = options || {};
 
   try {
     // 初始化 MCP 工具
-    const { initializeMCPToolsForDeepResearch, createToolsConfig } =
-      await import('./tools');
+
     const { allTools } = await initializeMCPToolsForDeepResearch();
-    const toolsConfig = createToolsConfig();
 
     // 创建状态图，传入工具
-    const graph = checkpointer
-      ? createDeepResearchGraphWithCheckpoint(checkpointer, allTools)
-      : createDeepResearchGraph(allTools);
+    const graph = createDeepResearchGraph(checkpointer);
 
     // 创建初始状态
     const initialState = createInitialState(question, sessionId, userId);
@@ -84,13 +87,11 @@ export async function runDeepResearch(
           configurable: {
             thread_id: sessionId,
             tools: allTools,
-            toolsConfig,
           },
         }
       : {
           configurable: {
             tools: allTools,
-            toolsConfig,
           },
         };
 
@@ -134,25 +135,15 @@ export async function* streamDeepResearch(
   sessionId: string,
   userId: string,
   options?: {
-    checkpointer?: unknown;
+    checkpointer?: any;
   }
 ) {
-  const { checkpointer } = options || {};
+  const { checkpointer = getCheckpointer() } = options || {};
 
-  // 初始化 MCP 工具
-  const { initializeMCPToolsForDeepResearch, createToolsConfig } = await import(
-    './tools'
-  );
   const { allTools } = await initializeMCPToolsForDeepResearch();
-  const toolsConfig = createToolsConfig();
 
   // 创建状态图，传入工具
-  const graph = checkpointer
-    ? createDeepResearchGraphWithCheckpoint(
-        checkpointer as BaseCheckpointSaver<number>,
-        allTools
-      )
-    : createDeepResearchGraph(allTools);
+  const graph = createDeepResearchGraph(checkpointer);
 
   // 创建初始状态
   const initialState = createInitialState(question, sessionId, userId);
@@ -163,20 +154,13 @@ export async function* streamDeepResearch(
   }
 
   // 配置，将工具传入运行时配置
-  const config = checkpointer
-    ? {
-        configurable: {
-          thread_id: sessionId,
-          tools: allTools,
-          toolsConfig,
-        },
-      }
-    : {
-        configurable: {
-          tools: allTools,
-          toolsConfig,
-        },
-      };
+  const config: any = {
+    configurable: {
+      thread_id: sessionId,
+      tools: allTools,
+    },
+    streamMode: 'updates',
+  };
 
   // 流式执行
   const stream = await graph.stream(initialState, config);
@@ -226,7 +210,7 @@ export async function resumeResearch(
     }
 
     // 创建状态图
-    const graph = createDeepResearchGraphWithCheckpoint(checkpointer);
+    const graph = createDeepResearchGraph(checkpointer);
 
     // 配置
     const config = { configurable: { thread_id: sessionId } };

@@ -21,6 +21,7 @@ export function ChatPanel({
 }: ChatPanelProps) {
   const [question, setQuestion] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  console.log('%c Line:18 🥑 messages', 'color:#e41a6a', messages);
 
   // 自动滚动到底部
   useEffect(() => {
@@ -36,6 +37,7 @@ export function ChatPanel({
   };
 
   const renderMessage = (message: Message, index: number) => {
+    console.log('%c Line:39 🥒 message', 'color:#33a5ff', message);
     const { type, content, timestamp } = message;
 
     switch (type) {
@@ -85,7 +87,7 @@ export function ChatPanel({
 
       case 'plan':
         return (
-          <div key={index} className='mb-4'>
+          <div key={content.taskId} className='mb-4'>
             <div className='bg-purple-50 border-l-4 border-purple-400 p-4 rounded'>
               <h4 className='font-semibold text-purple-800 mb-2'>研究计划</h4>
               <div className='text-sm text-purple-700'>

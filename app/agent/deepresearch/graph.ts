@@ -13,35 +13,34 @@ import {
 } from './nodes';
 import { shouldContinueResearch } from './edges';
 
-// 创建 DeepResearch 状态图
-export function createDeepResearchGraph(_tools?: unknown[]) {
-  const workflow = new StateGraph(ResearchStateAnnotation)
-    // 添加节点
-    .addNode('analyze_question', analyzeQuestionNode)
-    .addNode('generate_plan', generatePlanNode)
-    .addNode('research_section', researchSectionNode)
-    .addNode('generate_report', generateReportNode)
+// // 创建 DeepResearch 状态图
+// export function createDeepResearchGraph() {
+//   const workflow = new StateGraph(ResearchStateAnnotation)
+//     // 添加节点
+//     .addNode('analyze_question', analyzeQuestionNode)
+//     .addNode('generate_plan', generatePlanNode)
+//     .addNode('research_section', researchSectionNode)
+//     .addNode('generate_report', generateReportNode)
 
-    // 添加边
-    .addEdge(START, 'analyze_question')
-    .addEdge('analyze_question', 'generate_plan')
-    .addEdge('generate_plan', 'research_section')
+//     // 添加边
+//     .addEdge(START, 'analyze_question')
+//     .addEdge('analyze_question', 'generate_plan')
+//     .addEdge('generate_plan', 'research_section')
 
-    // 条件边：检查是否继续研究章节
-    .addConditionalEdges('research_section', shouldContinueResearch, {
-      research_section: 'research_section',
-      generate_report: 'generate_report',
-    })
+//     // 条件边：检查是否继续研究章节
+//     .addConditionalEdges('research_section', shouldContinueResearch, {
+//       research_section: 'research_section',
+//       generate_report: 'generate_report',
+//     })
 
-    .addEdge('generate_report', END);
+//     .addEdge('generate_report', END);
 
-  return workflow.compile();
-}
+//   return workflow.compile();
+// }
 
 // 创建带检查点的状态图
-export function createDeepResearchGraphWithCheckpoint(
-  checkpointer: BaseCheckpointSaver<number>,
-  _tools?: unknown[]
+export function createDeepResearchGraph(
+  checkpointer: BaseCheckpointSaver<number>
 ) {
   const workflow = new StateGraph(ResearchStateAnnotation)
     // 添加节点
@@ -65,6 +64,8 @@ export function createDeepResearchGraphWithCheckpoint(
 
   return workflow.compile({ checkpointer });
 }
+
+export const createDeepResearchGraphWithCheckpoint = createDeepResearchGraph;
 
 // 辅助函数：创建初始状态
 export function createInitialState(

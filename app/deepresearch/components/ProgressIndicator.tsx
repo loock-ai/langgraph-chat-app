@@ -78,7 +78,7 @@ export function ProgressIndicator({
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
           </div>
-          <span className='text-xs text-gray-500'>{progress}%</span>
+          <span className='text-xs text-gray-500'>{progress.toFixed(1)}%</span>
         </div>
       )}
 

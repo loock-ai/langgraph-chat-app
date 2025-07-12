@@ -1,11 +1,13 @@
 import { HumanMessage } from '@langchain/core/messages';
 import { ResearchState } from '../state';
 import { ResearchPlan } from '../types';
-import { createAnalysisLLM } from './llm';
+import { createLLM } from './llm';
+import { RunnableConfig } from '@langchain/core/runnables';
 
 // 计划生成节点
 export async function generatePlanNode(
-  state: ResearchState
+  state: ResearchState,
+  config?: RunnableConfig
 ): Promise<Partial<ResearchState>> {
   const { question, analysis, messages } = state;
 
@@ -40,7 +42,8 @@ export async function generatePlanNode(
   请确保sections数组包含至少3个章节，每个章节都有title、description和priority字段。
   `;
 
-  const llm = createAnalysisLLM();
+  const llm = createLLM(config?.configurable?.tools);
+
   const response = await llm.invoke([
     ...messages,
     new HumanMessage(planPrompt),

@@ -41,8 +41,7 @@ export async function researchSectionNode(
   const llm = createAnalysisLLM();
 
   // 从运行时配置获取工具，如果没有则使用默认初始化
-  const allTools =
-    config?.configurable?.tools || (await initializeTools(config)).allTools;
+  const allTools = config?.configurable?.tools;
 
   const researchPrompt = `你是一个专业的研究专家，能够完成完整的章节研究工作。你的能力包括：
 

@@ -36,6 +36,25 @@ const workflow = new StateGraph(MessagesAnnotation)
 let checkpointer: SqliteSaver;
 let app: any;
 
+export const getCheckpointer = () => {
+  if (!checkpointer) {
+    // 创建 SQLite 检查点保存器
+    console.log('初始化 SqliteSaver，数据库路径:', dbPath);
+    try {
+      // 使用 better-sqlite3 创建数据库连接
+      const db = new Database(dbPath);
+      // 初始化自定义 sessions 表
+      initSessionTable();
+      checkpointer = new SqliteSaver(db);
+      console.log('SqliteSaver 初始化成功');
+    } catch (error) {
+      console.error('SqliteSaver 初始化失败:', error);
+      throw error;
+    }
+  }
+  return checkpointer;
+};
+
 async function initializeApp() {
   if (!checkpointer) {
     // 创建 SQLite 检查点保存器
@@ -59,7 +78,7 @@ async function initializeApp() {
 
   return app;
 }
-initializeApp()
+initializeApp();
 // 获取应用实例的函数
 const getApp = async () => {
   return await initializeApp();
