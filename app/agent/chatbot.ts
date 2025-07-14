@@ -25,7 +25,7 @@ async function chatbotNode(state: typeof MessagesAnnotation.State) {
   return { messages: [response] };
 }
 const dbPath = path.resolve(process.cwd(), 'chat_history.db');
-
+export const db = new Database(dbPath);
 // 构建流式聊天机器人图
 const workflow = new StateGraph(MessagesAnnotation)
   .addNode('chatbot', chatbotNode)
@@ -41,8 +41,6 @@ export const getCheckpointer = () => {
     // 创建 SQLite 检查点保存器
     console.log('初始化 SqliteSaver，数据库路径:', dbPath);
     try {
-      // 使用 better-sqlite3 创建数据库连接
-      const db = new Database(dbPath);
       // 初始化自定义 sessions 表
       initSessionTable();
       checkpointer = new SqliteSaver(db);

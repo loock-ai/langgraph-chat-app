@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="如何学习langgraphsjs：完整研究指南，包含环境搭建、深入理解与实战项目三大部分。"/>
+  <meta name="keywords" content="langgraphsjs, JavaScript, 学习指南, 教程, 开源项目"/>
+  <meta name="author" content="LangGraphJS 研究团队"/>
+  <title>如何学习 LangGraphJS - 完整指南</title>
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(to right, #1e3a8a, #3b82f6);
+      --bg-color: #f8fafc;
+      --text-color: #1e293b;
+      --accent-color: #f59e0b;
+      --card-bg: #ffffff;
+      --border-radius: 1rem;
+      --font-family: 'Inter', "SF Pro Display", Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --transition: all 0.3s ease-in-out;
+    }
+
+    body.dark {
+      --bg-color: #0f172a;
+      --text-color: #f8fafc;
+      --card-bg: #1e293b;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-family);
+      background: var(--bg-color);
+      color: var(--text-color);
+      scroll-behavior: smooth;
+    }
+
+    header {
+      background: var(--primary-gradient);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    section {
+      margin-bottom: 3rem;
+      padding: 1.5rem;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      transition: var(--transition);
+    }
+
+    section:hover {
+      transform: translateY(-5px);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+    }
+
+    code {
+      background: #e2e8f0;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.5rem;
+      font-family: monospace;
+    }
+
+    pre {
+      background: #1e293b;
+      color: #f8fafc;
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 0.75rem;
+    }
+
+    a {
+      color: var(--accent-color);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    ul, ol {
+      padding-left: 1.5rem;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 2rem;
+      left: 1rem;
+      width: 200px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar h4 {
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .sidebar li {
+      margin-bottom: 0.5rem;
+    }
+
+    .top-button {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--accent-color);
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .top-button:hover {
+      background: #fbbf24;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+
+    table th, table td {
+      border: 1px solid #e2e8f0;
+      padding: 0.75rem;
+      text-align: left;
+    }
+
+    table th {
+      background: #f1f5f9;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--accent-color);
+      color: white;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      z-index: 100;
+    }
+
+    .theme-toggle:hover {
+      background: #fbbf24;
+    }
+
+    @media print {
+      body {
+        background: white;
+        color: black;
+      }
+      .sidebar, .top-button, .theme-toggle {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>如何学习 LangGraphJS</h1>
+    <p>完整的研究计划与实践指南</p>
+  </header>
+
+  <div class="sidebar">
+    <h4>目录</h4>
+    <ul>
+      <li><a href="#环境搭建与基础学习">环境搭建与基础学习</a></li>
+      <li><a href="#深入理解与案例实践">深入理解与案例实践</a></li>
+      <li><a href="#参与社区与实战项目">参与社区与实战项目</a></li>
+    </ul>
+  </div>
+
+  <main id="content">
+    <section id="环境搭建与基础学习">
+      <h2>环境搭建与基础学习</h2>
+      <h3>1. 开发环境安装配置</h3>
+      <h4>1.1 Node.js 安装</h4>
+      <p>LangGraphJS 是基于 JavaScript 的库，建议使用 Node.js 进行开发。</p>
+      <ul>
+        <li><strong>下载 Node.js</strong>：<a href="https://nodejs.org/" target="_blank">访问官网</a></li>
+        <li><strong>验证安装</strong>：
+          <pre><code>node -v
+npm -v</code></pre>
+        </li>
+      </ul>
+      <h4>1.2 LangGraphJS 安装</h4>
+      <pre><code>npm install langgraphjs</code></pre>
+      <h4>1.3 开发工具配置</h4>
+      <ul>
+        <li><strong>代码编辑器</strong>：<a href="https://code.visualstudio.com/" target="_blank">Visual Studio Code</a></li>
+        <li><strong>版本控制</strong>：<a href="https://github.com/">GitHub</a> 或 <a href="https://gitlab.com/">GitLab</a></li>
+      </ul>
+
+      <h3>2. LangGraphJS 基本概念</h3>
+      <h4>2.1 核心概念</h4>
+      <ul>
+        <li><strong>图（Graph）</strong>：节点 + 边</li>
+        <li><strong>状态机（State Machine）</strong>：流程管理</li>
+        <li><strong>异步处理</strong>：非阻塞任务执行</li>
+      </ul>
+
+      <h3>3. API 概述</h3>
+      <h4>3.1 主要模块</h4>
+      <pre><code>const graph = new LangGraph();
+const node = graph.addNode('myNode', { type: 'llm' });
+graph.addEdge('inputNode', 'outputNode');</code></pre>
+
+      <h3>4. 应用案例</h3>
+      <h4>4.1 多模型协作</h4>
+      <pre><code>const summaryNode = graph.addNode('summary', {
+  type: 'llm',
+  config: {
+    model: 'gpt-3.5-turbo',
+    prompt: '请生成一段文本的摘要：{text}'
+  }
+});</code></pre>
+    </section>
+
+    <section id="深入理解与案例实践">
+      <h2>深入理解与案例实践</h2>
+      <h3>1. 核心概念</h3>
+      <h4>1.1 LangGraphs.js 是什么？</h4>
+      <p>一个可视化编程库，用于构建语言处理流程的图形化界面。</p>
+      <ul>
+        <li>支持模块化设计</li>
+        <li>提供丰富内置节点</li>
+        <li>可扩展性强</li>
+      </ul>
+
+      <h3>2. 发展历史</h3>
+      <ul>
+        <li><strong>2020</strong>：OpenMined 社区发起</li>
+        <li><strong>2022</strong>：v1.0 发布</li>
+        <li><strong>2023</strong>：集成 HuggingFace Transformers</li>
+      </ul>
+
+      <h3>3. 技术细节</h3>
+      <h4>3.1 架构设计</h4>
+      <ul>
+        <li>React + Redux</li>
+        <li>Dagre-D3 图布局</li>
+      </ul>
+
+      <h3>4. 应用案例</h3>
+      <h4>4.1 多模态情感分析系统</h4>
+      <ul>
+        <li>输入层：接收文本和图像 URL</li>
+        <li>处理层：BERT + CNN</li>
+        <li>输出层：融合结果并生成报告</li>
+      </ul>
+    </section>
+
+    <section id="参与社区与实战项目">
+      <h2>参与社区与实战项目</h2>
+      <h3>1. 核心概念</h3>
+      <h4>1.1 社区的定义</h4>
+      <p>围绕特定技术主题进行交流、协作和知识共享的群体。</p>
+      <ul>
+        <li>论坛（Stack Overflow）</li>
+        <li>即时通讯平台（Discord）</li>
+        <li>GitHub组织</li>
+      </ul>
+
+      <h3>2. 发展历史与趋势</h3>
+      <h4>2023年 GitHub 数据：</h4>
+      <ul>
+        <li>>3亿个仓库</li>
+        <li>>5600万活跃开发者/月</li>
+        <li>>1400万贡献者</li>
+      </ul>
+
+      <h3>3. 技术细节与参与方式</h3>
+      <h4>推荐平台：</h4>
+      <ul>
+        <li><a href="https://stackoverflow.com/">Stack Overflow</a></li>
+        <li><a href="https://www.reddit.com/r/learnprogramming/">Reddit r/learnprogramming</a></li>
+        <li><a href="https://dev.to/">Dev.to</a></li>
+      </ul>
+
+      <h3>4. 应用案例与成功经验</h3>
+      <h4>React.js 社区</h4>
+      <ul>
+        <li>>20万个 Star</li>
+        <li>数百个本地用户组</li>
+        <li>年度大会 React Conf</li>
+      </ul>
+
+      <h3>5. 数据与统计</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>平台</th>
+            <th>用户数</th>
+            <th>活跃开发者</th>
+            <th>主要特点</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GitHub</td>
+            <td>>3亿仓库</td>
+            <td>5600万/月</td>
+            <td>最大的开源代码托管平台</td>
+          </tr>
+          <tr>
+            <td>Stack Overflow</td>
+            <td>>2000万注册</td>
+            <td>>1000万+/月</td>
+            <td>编程问答社区</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>6. 结论与建议</h3>
+      <p>建议从以下方面入手：</p>
+      <ul>
+        <li>选择合适的社区</li>
+        <li>从小项目开始</li>
+        <li>持续学习与反馈</li>
+        <li>建立个人品牌</li>
+      </ul>
+    </section>
+  </main>
+
+  <button class="top-button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">↑ 返回顶部</button>
+  <button class="theme-toggle" onclick="document.body.classList.toggle('dark')">🌙 切换模式</button>
+
+  <script>
+    window.addEventListener('scroll', () => {
+      const btn = document.querySelector('.top-button');
+      btn.style.display = (window.pageYOffset > 300) ? 'block' : 'none';
+    });
+  </script>
+</body>
+</html>

@@ -1,19 +1,5 @@
-import Database from 'better-sqlite3';
-import path from 'path';
-import fs from 'fs';
 import { ResearchState, GeneratedFile } from '../../agent/deepresearch/types';
-
-// 数据库路径
-const dbPath = path.join(process.cwd(), 'data', 'deepresearch.db');
-
-// 确保数据目录存在
-const dataDir = path.dirname(dbPath);
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
-// 创建数据库连接
-const db = new Database(dbPath);
+import { db } from '@/app/agent/chatbot';
 
 // 初始化数据库表
 export function initDatabase() {
