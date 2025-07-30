@@ -44,26 +44,6 @@ export {
   enableTool,
 } from './config/tools.config';
 
-// DeepResearch Agent
-export {
-  createDeepResearchGraph,
-  createDeepResearchGraphWithCheckpoint,
-  runDeepResearch,
-  streamDeepResearch,
-  getResearchState,
-  resumeResearch,
-  createInitialState,
-  validateState,
-  type ResearchState,
-  type QuestionAnalysis,
-  type ResearchPlan,
-  type ResearchTask,
-  type SearchResult,
-  type AnalysisResult,
-  type ContentSection,
-  type GeneratedFile,
-  type ResearchStatus,
-} from './deepresearch';
 
 // 辅助函数
 export function formatMessagesForAgent(messages: any[]) {
