@@ -17,14 +17,13 @@ export async function initializeMCPToolsForDeepResearch() {
   const mcptools = new MultiServerMCPClient({
     mcpServers: {
       'server-sequential-thinking': {
-        command: 'npx',
+        command: 'pnpx',
         args: ['@modelcontextprotocol/server-sequential-thinking', '-y'],
         transport: 'stdio',
       },
       filesystem: {
-        command: 'npx',
+        command: 'pnpx',
         args: [
-          '-y',
           '@modelcontextprotocol/server-filesystem',
           path.join(process.cwd(), 'public'),
         ],
