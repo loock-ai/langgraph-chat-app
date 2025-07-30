@@ -25,7 +25,7 @@ async function chatbotNode(state: typeof MessagesAnnotation.State) {
   return { messages: [response] };
 }
 const dbPath = path.resolve(process.cwd(), 'chat_history.db');
-
+export const db = new Database(dbPath);
 // 构建流式聊天机器人图
 const workflow = new StateGraph(MessagesAnnotation)
   .addNode('chatbot', chatbotNode)
@@ -35,6 +35,23 @@ const workflow = new StateGraph(MessagesAnnotation)
 // 异步初始化检查点保存器和应用
 let checkpointer: SqliteSaver;
 let app: any;
+
+export const getCheckpointer = () => {
+  if (!checkpointer) {
+    // 创建 SQLite 检查点保存器
+    console.log('初始化 SqliteSaver，数据库路径:', dbPath);
+    try {
+      // 初始化自定义 sessions 表
+      initSessionTable();
+      checkpointer = new SqliteSaver(db);
+      console.log('SqliteSaver 初始化成功');
+    } catch (error) {
+      console.error('SqliteSaver 初始化失败:', error);
+      throw error;
+    }
+  }
+  return checkpointer;
+};
 
 async function initializeApp() {
   if (!checkpointer) {
@@ -59,7 +76,7 @@ async function initializeApp() {
 
   return app;
 }
-initializeApp()
+initializeApp();
 // 获取应用实例的函数
 const getApp = async () => {
   return await initializeApp();
