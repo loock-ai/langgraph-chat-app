@@ -225,7 +225,7 @@ langgraph-chat-app/
 #### 2.4 环境变量配置
 ```env
 OPENAI_API_KEY=your_openai_api_key
-OPENAI_MODEL_NAME=gpt-3.5-turbo
+OPENAI_MODEL_NAME=qwen-plus
 NODE_ENV=development
 ```
 
@@ -328,25 +328,34 @@ NODE_ENV=development
 
 #### 📚 知识点清单
 
-#### 4.1 API接口实现
-- **Next.js API Routes**
-  - 聊天接口实现(/api/chat)
-  - 会话管理接口(/api/chat/sessions)
-  - GET/POST请求处理
-  - JSON数据格式
+#### 4.1 API接口设计规范
+- **API路由统一设计**
+  - `/api/chat` (POST): 发送消息，支持流式响应
+  - `/api/chat` (GET): 获取指定会话的消息历史
+  - `/api/chat/sessions` (GET/POST/PATCH/DELETE): 会话管理
+  - JSON数据格式和错误处理
 
 - **实际接口设计**
   ```typescript
-  // 聊天接口
+  // app/api/chat/route.ts - 消息处理
   export async function POST(request: NextRequest) {
-    const { message, thread_id } = await request.json();
-    // 处理聊天逻辑
+    const { message, threadId } = await request.json();
+    // 处理聊天逻辑，返回流式响应
   }
   
-  // 历史记录接口
+  // 获取指定会话的历史记录
   export async function GET(request: NextRequest) {
-    const thread_id = searchParams.get('thread_id');
-    // 返回聊天历史
+    const threadId = searchParams.get('threadId');
+    // 返回指定会话的消息历史
+  }
+  
+  // app/api/chat/sessions/route.ts - 会话管理
+  export async function GET() {
+    // 获取所有会话列表
+  }
+  
+  export async function POST(request: NextRequest) {
+    // 创建新会话
   }
   ```
 
@@ -358,21 +367,22 @@ NODE_ENV=development
 
 - **项目数据模型**
   ```typescript
-  // 消息表结构
+  // 消息表结构 - 统一使用驼峰式命名
   interface Message {
     id: string;
     content: string;
     role: 'user' | 'assistant';
     timestamp: Date;
-    session_id: string;
+    sessionId: string;        // 使用驼峰式
+    isStreaming?: boolean;    // 前端使用的临时字段
   }
   
-  // 会话表结构
+  // 会话表结构 - 统一使用驼峰式命名
   interface Session {
     id: string;
     name: string;
-    created_at: Date;
-    updated_at: Date;
+    createdAt: Date;          // 使用驼峰式
+    updatedAt: Date;          // 使用驼峰式
   }
   ```
 
@@ -436,16 +446,16 @@ NODE_ENV=development
   - 请求限制和重试策略
 
 - **模型选择和使用**
-  - GPT-3.5-turbo vs GPT-4的选择
-  - 不同场景下的模型推荐
+  - qwen-plus: 高性能中文对话模型
+  - 国产大模型的优势和特点
   - 成本和性能权衡
-  - 响应速度考虑
-  - 实际使用建议
+  - 响应速度和精度考虑
+  - 实际使用建议和最佳实践
 
 - **高级参数调优**
   ```typescript
   const model = new ChatOpenAI({
-    model: "gpt-4", // 模型选择
+    model: process.env.OPENAI_MODEL_NAME || "qwen-plus", // 使用环境变量配置，默认qwen-plus
     temperature: 0.7, // 创造性控制 (0-2)
     maxTokens: 2000, // 最大输出长度
     topP: 0.95, // 核采样参数 (0-1)
@@ -619,7 +629,7 @@ NODE_ENV=development
 **会话管理实践**
 - **Thread配置使用**
   ```typescript
-  // 会话配置
+  // 会话配置 - 注意：LangGraphJS内部使用thread_id，前端接口使用threadId
   const threadConfig = {
     configurable: { thread_id: 'user-session-123' }
   };
@@ -644,7 +654,7 @@ NODE_ENV=development
   ```typescript
   // app/api/chat/route.ts
   export async function POST(request: NextRequest) {
-    const { message, thread_id } = await request.json();
+    const { message, threadId } = await request.json();  // 使用驼峰式
     
     const stream = new ReadableStream({
       async start(controller) {
@@ -652,7 +662,7 @@ NODE_ENV=development
           { messages: [new HumanMessage(message)] },
           { 
             version: 'v2',
-            configurable: { thread_id }
+            configurable: { thread_id: threadId }  // 内部传参保持原样
           }
         )) {
           if (event.event === 'on_chat_model_stream') {
@@ -680,7 +690,7 @@ NODE_ENV=development
   // 前端流式处理
   const response = await fetch('/api/chat', {
     method: 'POST',
-    body: JSON.stringify({ message, thread_id })
+    body: JSON.stringify({ message, threadId })  // 使用驼峰式
   });
   
   const reader = response.body?.getReader();
@@ -713,7 +723,7 @@ NODE_ENV=development
   try {
     const response = await app.invoke(
       { messages: [new HumanMessage(message)] },
-      { configurable: { thread_id } }
+      { configurable: { thread_id: threadId } }  // 使用传入的threadId参数
     );
   } catch (error) {
     console.error('LangGraph调用失败:', error);
@@ -830,15 +840,15 @@ NODE_ENV=development
   ```typescript
   export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
-    const thread_id = searchParams.get('thread_id');
+    const threadId = searchParams.get('threadId');  // 使用驼峰式
     
-    if (thread_id) {
+    if (threadId) {
       const state = await app.getState({ 
-        configurable: { thread_id } 
+        configurable: { thread_id: threadId }  // 内部传参保持原样
       });
       return NextResponse.json({
-        thread_id,
-        history: state?.values?.messages | []
+        threadId,
+        history: state?.values?.messages || []  // 修复语法错误
       });
     }
   }
@@ -848,11 +858,12 @@ NODE_ENV=development
 - **消息接口定义**
   ```typescript
   interface Message {
-    id: string
-    content: string
-    role: 'user' | 'assistant'
-    timestamp: Date
-    isStreaming?: boolean
+    id: string;
+    content: string;
+    role: 'user' | 'assistant';
+    timestamp: Date;
+    sessionId: string;        // 统一使用驼峰式
+    isStreaming?: boolean;    // 前端流式显示状态
   }
   ```
 
@@ -873,7 +884,7 @@ NODE_ENV=development
 - **历史记录加载**
   ```typescript
   useEffect(() => {
-    fetch(`/api/chat?thread_id=${sessionId}`)
+    fetch(`/api/chat?threadId=${sessionId}`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data.history) && data.history.length > 0) {
@@ -884,9 +895,10 @@ NODE_ENV=development
             }
             return {
               id: String(idx + 1),
-              content: msg.kwargs?.content | '',
+              content: msg.kwargs?.content || '',  // 修复语法错误
               role,
-              timestamp: new Date()
+              timestamp: new Date(),
+              sessionId                            // 添加sessionId字段
             }
           })
           setMessages(historyMsgs)
@@ -899,13 +911,14 @@ NODE_ENV=development
 - **消息发送和流式接收**
   ```typescript
   const sendMessage = async () => {
-    if (!input.trim() | isLoading) return
+    if (!input.trim() || isLoading) return  // 修复语法错误
 
     const userMessage: Message = {
       id: Date.now().toString(),
       content: input.trim(),
       role: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      sessionId                              // 添加sessionId字段
     }
 
     setMessages(prev => [...prev, userMessage])
@@ -916,7 +929,7 @@ NODE_ENV=development
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input.trim(), thread_id: sessionId })
+        body: JSON.stringify({ message: input.trim(), threadId: sessionId })  // 使用驼峰式
       })
 
       // 创建流式响应消息
@@ -925,6 +938,7 @@ NODE_ENV=development
         content: '',
         role: 'assistant',
         timestamp: new Date(),
+        sessionId,                           // 添加sessionId字段
         isStreaming: true
       }
       setMessages(prev => [...prev, assistantMessage])
@@ -940,7 +954,7 @@ NODE_ENV=development
 
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
-        buffer = lines.pop() | ''
+        buffer = lines.pop() || ''  // 修复语法错误
 
         for (const line of lines) {
           if (line.trim()) {
@@ -1096,27 +1110,50 @@ NODE_ENV=development
   interface Session {
     id: string;
     name: string;
-    created_at: string;
+    createdAt: string;   // 统一使用驼峰式命名
   }
   ```
 
 - **数据库操作实现**
   ```typescript
   // app/agent/db.ts
-  export function initSessionTable() {
+  import Database from 'better-sqlite3';
+  
+  // 数据库初始化 - 应在应用启动时调用
+  export function initDatabase() {
+    // 初始化会话表
     db.prepare(`CREATE TABLE IF NOT EXISTS sessions (
       id TEXT PRIMARY KEY,
       name TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`).run();
+    
+    // 初始化消息表（如果需要）
+    db.prepare(`CREATE TABLE IF NOT EXISTS messages (
+      id TEXT PRIMARY KEY,
+      content TEXT,
+      role TEXT,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      session_id TEXT,
+      FOREIGN KEY (session_id) REFERENCES sessions (id)
+    )`).run();
   }
+  
+  // 在app启动时调用：可以在 app/agent/index.ts 中调用
+  // initDatabase();
 
   export function createSession(id: string, name: string) {
     db.prepare('INSERT INTO sessions (id, name) VALUES (?, ?)').run(id, name);
   }
 
-  export function getAllSessions() {
-    return db.prepare('SELECT id, name, created_at FROM sessions ORDER BY created_at DESC').all();
+  export function getAllSessions(): Session[] {
+    const sessions = db.prepare('SELECT id, name, created_at FROM sessions ORDER BY created_at DESC').all();
+    // 将数据库字段转换为驼峰式
+    return sessions.map((session: any) => ({
+      id: session.id,
+      name: session.name,
+      createdAt: session.created_at
+    }));
   }
 
   export function updateSessionName(id: string, name: string) {
@@ -1139,7 +1176,7 @@ NODE_ENV=development
   export async function POST(request: Request) {
     const { name } = await request.json();
     const id = randomUUID();
-    createSession(id, name | `新会话-${id.slice(0, 8)}`);
+    createSession(id, name || `新会话-${id.slice(0, 8)}`);  // 修复语法错误
     return NextResponse.json({ id });
   }
 
@@ -1377,17 +1414,17 @@ NODE_ENV=development
 
 - **AI技术文档**
   - [LangGraphJS文档](https://langchain-ai.github.io/langgraphjs/) - 状态图工作流框架
-  - [OpenAI API文档](https://platform.openai.com/docs) - 模型使用指南
+  - [qwen-plus模型文档](https://help.aliyun.com/zh/dashscope/) - 阿里云通义千问大模型
   - [LangSmith](https://docs.smith.langchain.com/) - AI应用监控和调试
 
 #### 实战学习资源
 - **API使用指南**
-  - [OpenAI API最佳实践](https://platform.openai.com/docs/guides/best-practices) - 官方使用建议
+  - [qwen-plus API指南](https://help.aliyun.com/zh/dashscope/developer-reference/api-details) - qwen模型使用指南
   - [Prompt Engineering Guide](https://www.promptingguide.ai/) - 提示工程技巧
   - [LangGraphJS教程](https://langchain-ai.github.io/langgraphjs/tutorials/) - 状态图框架教程
 
 - **实际应用案例**
-  - [OpenAI Cookbook](https://github.com/openai/openai-cookbook) - 实用代码示例
+  - [qwen模型示例](https://github.com/QwenLM) - qwen官方示例代码
   - [LangChain应用模板](https://github.com/langchain-ai/langchain/tree/master/templates) - 项目模板
 
 #### 开源项目和示例
@@ -1397,14 +1434,14 @@ NODE_ENV=development
   - [Dify](https://github.com/langgenius/dify) - LLM应用开发平台
 
 - **学习项目和案例**
-  - [OpenAI Cookbook](https://github.com/openai/openai-cookbook) - OpenAI使用案例
+  - [qwen实战案例](https://github.com/QwenLM/Qwen) - qwen模型使用案例
   - [LangGraph教程项目](https://github.com/langchain-ai/langgraph/tree/main/examples) - 实战项目示例
   - [Awesome LangGraph](https://github.com/kyrolabs/awesome-langchain) - 精选资源集合
 
 #### 社区和论坛
 - **技术社区**
   - [LangChain Discord](https://discord.gg/langchain) - 官方技术交流
-  - [OpenAI Community](https://community.openai.com/) - OpenAI官方社区
+  - [qwen模型社区](https://github.com/QwenLM/Qwen/discussions) - qwen模型讨论区
   - [AI/ML Reddit](https://www.reddit.com/r/MachineLearning/) - 机器学习讨论
   - [Hacker News AI](https://news.ycombinator.com/item?id=ai) - 技术新闻和讨论
  
