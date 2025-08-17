@@ -1,0 +1,640 @@
+/**
+ * 3.2 Next.js项目应用 - 全局样式文件
+ * 
+ * 这是Next.js应用的全局CSS文件，定义了应用的基础样式和设计系统。
+ * 
+ * 🎯 学习要点：
+ * 1. Tailwind CSS的集成和配置
+ * 2. CSS自定义属性（变量）的使用
+ * 3. 全局样式重置和基础设置
+ * 4. 响应式设计的基础实现
+ * 5. 无障碍访问的样式支持
+ * 6. 性能优化的CSS技巧
+ */
+
+/* ================================
+   Tailwind CSS 基础样式
+   ================================ */
+
+/**
+ * Tailwind CSS 核心样式导入
+ * 
+ * 💡 导入顺序说明：
+ * 1. base - 基础样式重置和元素默认样式
+ * 2. components - 可复用的组件样式类
+ * 3. utilities - 原子化的工具类样式
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================================
+   CSS 自定义属性（变量）定义
+   ================================ */
+
+/**
+ * 全局CSS变量定义
+ * 
+ * 🎨 设计系统说明：
+ * - 使用CSS变量便于主题切换和维护
+ * - 支持明暗模式的动态切换
+ * - 统一的颜色、间距、阴影规范
+ */
+:root {
+    /* 🎨 主题色彩变量 */
+    --foreground-rgb: 255, 255, 255;
+    --background-rgb: 15, 15, 35;
+
+    /* 🌈 品牌色彩系统 */
+    --color-primary: 139, 92, 246;
+    /* 紫色主色 */
+    --color-secondary: 6, 182, 212;
+    /* 青色辅助色 */
+    --color-accent: 236, 72, 153;
+    /* 粉色强调色 */
+    --color-success: 34, 197, 94;
+    /* 成功绿色 */
+    --color-warning: 245, 158, 11;
+    /* 警告橙色 */
+    --color-error: 239, 68, 68;
+    /* 错误红色 */
+
+    /* 📐 间距系统 */
+    --spacing-xs: 0.25rem;
+    /* 4px */
+    --spacing-sm: 0.5rem;
+    /* 8px */
+    --spacing-md: 1rem;
+    /* 16px */
+    --spacing-lg: 1.5rem;
+    /* 24px */
+    --spacing-xl: 2rem;
+    /* 32px */
+    --spacing-2xl: 3rem;
+    /* 48px */
+
+    /* 🌫️ 阴影系统 */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+    /* 🎭 模糊效果 */
+    --blur-sm: 4px;
+    --blur-md: 8px;
+    --blur-lg: 16px;
+    --blur-xl: 24px;
+
+    /* ⚡ 动画时长 */
+    --duration-fast: 150ms;
+    --duration-normal: 300ms;
+    --duration-slow: 500ms;
+
+    /* 📏 边框圆角 */
+    --radius-sm: 0.375rem;
+    /* 6px */
+    --radius-md: 0.5rem;
+    /* 8px */
+    --radius-lg: 0.75rem;
+    /* 12px */
+    --radius-xl: 1rem;
+    /* 16px */
+    --radius-2xl: 1.5rem;
+    /* 24px */
+}
+
+/**
+ * 明暗模式支持
+ * 
+ * 🌙 设计考虑：
+ * - 自动适应系统主题偏好
+ * - 平滑的颜色过渡效果
+ * - 保持良好的对比度
+ */
+@media (prefers-color-scheme: light) {
+    :root {
+        --foreground-rgb: 0, 0, 0;
+        --background-rgb: 255, 255, 255;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --foreground-rgb: 255, 255, 255;
+        --background-rgb: 15, 15, 35;
+    }
+}
+
+/* ================================
+   全局基础样式重置
+   ================================ */
+
+/**
+ * 现代CSS重置
+ * 
+ * 🎯 目标：
+ * 1. 统一不同浏览器的默认样式
+ * 2. 建立一致的盒模型行为
+ * 3. 优化文本渲染效果
+ * 4. 提升可访问性
+ */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    /* 📏 响应式字体大小基准 */
+    font-size: 16px;
+
+    /* 📱 防止移动端横向滚动 */
+    max-width: 100vw;
+    overflow-x: hidden;
+
+    /* ⚡ 平滑滚动行为 */
+    scroll-behavior: smooth;
+
+    /* 🖼️ 文本渲染优化 */
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+body {
+    /* 🎨 主题色彩应用 */
+    color: rgb(var(--foreground-rgb));
+    background: rgb(var(--background-rgb));
+
+    /* 📝 字体系统 */
+    font-family: var(--font-geist-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif);
+    font-size: 1rem;
+    line-height: 1.6;
+    font-weight: 400;
+
+    /* 📱 移动端优化 */
+    max-width: 100vw;
+    overflow-x: hidden;
+
+    /* ⚡ 平滑的颜色过渡 */
+    transition: color var(--duration-normal) ease, background-color var(--duration-normal) ease;
+}
+
+/* ================================
+   自定义组件样式
+   ================================ */
+
+/**
+ * 自定义滚动条样式
+ * 
+ * 🎨 设计目标：
+ * - 与应用主题保持一致
+ * - 提供良好的视觉反馈
+ * - 支持不同尺寸的滚动容器
+ */
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--color-primary), 0.3) rgba(var(--color-primary), 0.1);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(var(--color-primary), 0.1);
+    border-radius: var(--radius-sm);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(var(--color-primary), 0.3);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--duration-fast) ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--color-primary), 0.5);
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/**
+ * 输入框专用滚动条
+ * 
+ * 🎯 特点：
+ * - 更细的滚动条适合输入框
+ * - 半透明设计不影响输入体验
+ */
+.input-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.input-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.input-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.input-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    transition: background-color var(--duration-fast) ease;
+}
+
+.input-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* ================================
+   动画效果定义
+   ================================ */
+
+/**
+ * 打字机光标动画
+ * 
+ * 💡 用途：流式响应时的视觉效果
+ * 特点：自然的闪烁节奏
+ */
+.typing-cursor {
+    animation: typing-blink 1s infinite;
+}
+
+@keyframes typing-blink {
+
+    0%,
+    50% {
+        opacity: 1;
+    }
+
+    51%,
+    100% {
+        opacity: 0;
+    }
+}
+
+/**
+ * 淡入动画
+ * 
+ * 💡 用途：消息出现时的过渡效果
+ * 特点：自然的向上滑入效果
+ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn var(--duration-normal) ease-out;
+}
+
+/**
+ * 脉冲动画
+ * 
+ * 💡 用途：加载状态和状态指示
+ * 特点：柔和的呼吸效果
+ */
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/**
+ * 弹跳动画
+ * 
+ * 💡 用途：加载指示器
+ * 特点：有趣的弹跳效果
+ */
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(-25%);
+        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+
+    50% {
+        transform: none;
+        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+}
+
+.bounce {
+    animation: bounce 1s infinite;
+}
+
+/* ================================
+   交互增强样式
+   ================================ */
+
+/**
+ * 输入框焦点增强效果
+ * 
+ * 🎨 设计理念：
+ * - 提供清晰的焦点反馈
+ * - 渐变边框的视觉效果
+ * - 平滑的过渡动画
+ */
+.input-focus-effect {
+    position: relative;
+    transition: all var(--duration-normal) ease;
+}
+
+.input-focus-effect::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    padding: 2px;
+    background: linear-gradient(135deg,
+            rgb(var(--color-primary)),
+            rgb(var(--color-secondary)),
+            rgb(var(--color-accent)));
+    border-radius: var(--radius-lg);
+    opacity: 0;
+    transition: opacity var(--duration-normal) ease;
+    z-index: -1;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: xor;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+}
+
+.input-focus-effect:focus-within::before {
+    opacity: 1;
+}
+
+/**
+ * 按钮悬浮增强效果
+ * 
+ * 🎯 特性：
+ * - 立体的阴影效果
+ * - 微妙的缩放变化
+ * - 颜色渐变过渡
+ */
+.button-hover-effect {
+    transition: all var(--duration-normal) cubic-bezier(0.4, 0, 0.2, 1);
+    transform: perspective(1px) translateZ(0);
+}
+
+.button-hover-effect:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--shadow-lg);
+}
+
+.button-hover-effect:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: var(--shadow-md);
+}
+
+/* ================================
+   响应式设计辅助
+   ================================ */
+
+/**
+ * 移动端优化样式
+ * 
+ * 📱 优化要点：
+ * - 合适的字体大小
+ * - 触摸友好的交互区域
+ * - 优化的滚动条尺寸
+ */
+@media (max-width: 768px) {
+    html {
+        font-size: 14px;
+    }
+
+    body {
+        font-size: 0.875rem;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+    }
+
+    .input-scrollbar::-webkit-scrollbar {
+        width: 3px;
+        height: 3px;
+    }
+}
+
+/**
+ * 小屏幕设备适配
+ */
+@media (max-width: 480px) {
+    html {
+        font-size: 13px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 3px;
+        height: 3px;
+    }
+}
+
+/* ================================
+   无障碍访问支持
+   ================================ */
+
+/**
+ * 高对比度模式支持
+ * 
+ * ♿ 无障碍考虑：
+ * - 确保足够的颜色对比度
+ * - 提供清晰的视觉区分
+ * - 支持系统无障碍设置
+ */
+@media (prefers-contrast: high) {
+    :root {
+        --foreground-rgb: 0, 0, 0;
+        --background-rgb: 255, 255, 255;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .input-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.6);
+    }
+}
+
+/**
+ * 减少动画偏好支持
+ * 
+ * ♿ 尊重用户偏好：
+ * - 禁用或减少动画效果
+ * - 提供静态的交互反馈
+ * - 确保功能仍然可用
+ */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .typing-cursor {
+        animation: none;
+        opacity: 1;
+    }
+
+    .fade-in {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+
+    .pulse,
+    .bounce {
+        animation: none;
+    }
+}
+
+/* ================================
+   打印样式优化
+   ================================ */
+
+/**
+ * 打印媒体查询
+ * 
+ * 🖨️ 打印优化：
+ * - 移除背景颜色和图片
+ * - 使用黑白配色方案
+ * - 隐藏不必要的交互元素
+ */
+@media print {
+    * {
+        background: transparent !important;
+        color: black !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    body {
+        font-size: 12pt;
+        line-height: 1.5;
+    }
+
+    .typing-cursor {
+        display: none;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* 隐藏纯装饰性元素 */
+    .decoration-only {
+        display: none;
+    }
+}
+
+/* ================================
+   工具类扩展
+   ================================ */
+
+/**
+ * 自定义工具类
+ * 
+ * 💡 补充Tailwind CSS未覆盖的场景
+ */
+
+/* 渐变文字效果 */
+.text-gradient {
+    background: linear-gradient(135deg,
+            rgb(var(--color-primary)),
+            rgb(var(--color-secondary)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* 毛玻璃效果 */
+.glass-effect {
+    backdrop-filter: blur(var(--blur-md));
+    -webkit-backdrop-filter: blur(var(--blur-md));
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 阴影层次 */
+.shadow-soft {
+    box-shadow: var(--shadow-sm);
+}
+
+.shadow-medium {
+    box-shadow: var(--shadow-md);
+}
+
+.shadow-strong {
+    box-shadow: var(--shadow-lg);
+}
+
+/* 完美居中 */
+.center-absolute {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/**
+ * 🎓 学习总结
+ * 
+ * 通过这个全局样式文件，你学到了：
+ * 
+ * 1. Tailwind CSS的集成和自定义配置
+ * 2. CSS变量系统的设计和应用
+ * 3. 全局样式重置的最佳实践
+ * 4. 响应式设计的CSS实现
+ * 5. 无障碍访问的样式支持
+ * 6. 动画效果的设计和实现
+ * 7. 交互增强的CSS技巧
+ * 8. 性能优化的CSS策略
+ * 
+ * 🎨 设计系统的价值：
+ * - 统一的视觉语言和用户体验
+ * - 可维护和可扩展的样式架构
+ * - 高效的开发工作流程
+ * - 良好的浏览器兼容性
+ * 
+ * 🚀 进一步学习方向：
+ * - CSS-in-JS解决方案集成
+ * - 主题切换系统实现
+ * - 复杂动画和过渡效果
+ * - CSS性能优化技巧
+ * - 现代CSS特性应用
+ */
+

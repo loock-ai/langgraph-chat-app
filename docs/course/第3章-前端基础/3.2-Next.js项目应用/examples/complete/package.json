@@ -1,0 +1,35 @@
+{
+    "name": "langgraph-chat-app-3.2-example",
+    "version": "1.0.0",
+    "description": "第3.2节 Next.js项目应用完整代码示例",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint",
+        "type-check": "tsc --noEmit"
+    },
+    "dependencies": {
+        "next": "^15.0.0",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+        "lucide-react": "^0.263.1"
+    },
+    "devDependencies": {
+        "@types/node": "^20",
+        "@types/react": "^18",
+        "@types/react-dom": "^18",
+        "eslint": "^8",
+        "eslint-config-next": "15.0.0",
+        "postcss": "^8",
+        "tailwindcss": "^3.4.1",
+        "typescript": "^5"
+    },
+    "engines": {
+        "node": ">=18.17.0",
+        "pnpm": ">=8.0.0"
+    },
+    "packageManager": "pnpm@8.15.6"
+}
+
