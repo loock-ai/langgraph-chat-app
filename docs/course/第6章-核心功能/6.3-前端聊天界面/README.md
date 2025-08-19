@@ -625,3 +625,4 @@ const VirtualizedMessageList = ({ messages }: { messages: Message[] }) => {
 ## 🚀 下一步展望
 
 完成了前端聊天界面的实现后，我们将学习6.4小节的流式响应前端实现，深入了解如何处理前端的流式数据接收、解析和显示，让我们的聊天体验更加流畅自然。
+

@@ -245,19 +245,36 @@ blockquote p {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 2rem !important;
-    align-items: start !important;
+    align-items: flex-start !important;
     width: 100% !important;
-    margin: 1rem 0 !important;
+    margin: 1.5rem 0 !important;
+    box-sizing: border-box !important;
 }
 
 .two-column>div {
     min-width: 0 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
 }
 
 .text-content {
-    padding-right: 1rem !important;
+    padding: 0 1rem 0 0 !important;
     overflow-wrap: break-word !important;
     word-wrap: break-word !important;
+    hyphens: auto !important;
+}
+
+/* 确保代码块在两列布局中正确显示 */
+.two-column pre {
+    margin: 1rem 0 !important;
+    font-size: 0.8em !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+}
+
+.two-column code {
+    font-size: 0.85em !important;
+    word-break: break-all !important;
 }
 
 .image-content {
@@ -294,6 +311,30 @@ blockquote p {
     min-width: 0 !important;
 }
 
+/* 代码优化的两列布局 */
+.code-two-column {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1.5rem !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+    margin: 1.5rem 0 !important;
+}
+
+.code-two-column>div {
+    background: #f8f9fa !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    border-left: 4px solid #3498db !important;
+}
+
+.code-two-column pre {
+    margin: 0.5rem 0 !important;
+    font-size: 0.75em !important;
+    background: #2d3748 !important;
+    border-radius: 6px !important;
+}
+
 /* 备用布局方案 */
 .two-column-fallback {
     display: flex !important;
@@ -323,7 +364,8 @@ blockquote p {
 @media (max-width: 768px) {
 
     .two-column,
-    .three-column {
+    .three-column,
+    .code-two-column {
         grid-template-columns: 1fr !important;
         gap: 1rem !important;
     }
@@ -332,6 +374,15 @@ blockquote p {
     .three-column-fallback>div {
         flex: 1 1 100% !important;
         min-width: 100% !important;
+    }
+
+    .text-content {
+        padding: 0 !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .code-two-column>div {
+        margin-bottom: 1rem !important;
     }
 
     section {
@@ -352,17 +403,28 @@ blockquote p {
 @media (max-width: 480px) {
 
     .two-column,
-    .three-column {
+    .three-column,
+    .code-two-column {
         gap: 0.5rem !important;
+        margin: 1rem 0 !important;
     }
 
     .text-content {
-        padding-right: 0 !important;
+        padding: 0 !important;
         margin-bottom: 1rem !important;
     }
 
     .image-content img {
         max-width: 90% !important;
+    }
+
+    .code-two-column>div {
+        padding: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .code-two-column pre {
+        font-size: 0.7em !important;
     }
 }
 

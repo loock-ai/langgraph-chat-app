@@ -745,3 +745,4 @@ global.IntersectionObserver = class IntersectionObserver {
 第8章我们将学习高级特性，包括多会话管理、数据导出、离线支持等功能，让应用更加完善和实用。
 
 您的UI/UX设计和开发技能已经达到了专业水准！
+

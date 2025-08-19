@@ -693,3 +693,4 @@ const processStreamingResponse = async (message: string, messageId: string) => {
 接下来的第7章我们将学习界面优化，让应用更加美观和易用；第8章将添加高级特性，如多会话管理、导出功能等。
 
 您的AI应用开发技能已经达到了专业水平！
+
